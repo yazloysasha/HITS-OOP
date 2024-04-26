@@ -1,5 +1,6 @@
 package organization
 
+import people.*
 import animals.*
 import kotlin.math.min
 import kotlinx.coroutines.*
