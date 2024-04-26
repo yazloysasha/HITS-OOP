@@ -12,11 +12,6 @@ class Command(
     private var active = true
     private var lives = true
 
-    // Введите команду
-    private fun enterCommand() {
-        print("Enter your command: /")
-    }
-
     // Разрушить обработчик команд
     fun destroy() {
         lives = false
@@ -32,7 +27,7 @@ class Command(
                     eventEnd()
                 }
             } else {
-                enterCommand()
+                print("Enter your command: /")
                 eventStart()
             }
 
