@@ -6,5 +6,5 @@ package people
 
 open class Person(initName: String, initSex: String) {
     var name = initName // Имя
-    val sex = initSex // Пол
+    val sex = if (initSex == "MALE") "MALE" else "FEMALE" // Пол
 }
