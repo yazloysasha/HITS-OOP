@@ -5,19 +5,19 @@ package animals
  */
 
 open class Animal {
-    var satiety: Int = 0 // Сытость
-    open var threshold: Int = 0 // Порог сытости
-    open var voice: String = "" // Голос
+    private var satiety = 32 // Сытость
+    open var threshold = 0 // Порог сытости
+    open var voice = "" // Голос
 
     val name: String? // Название животного
         get() = this::class.simpleName
 
     val status: String // Статус животного
-        get() = if (isHungry()) "HUNGRY" else "WELL-FED"
+        get() = if (satiety < threshold) "HUNGRY" else "WELL-FED"
 
-    // Голодно ли сейчас животное
-    fun isHungry(): Boolean {
-        return satiety < threshold
+    // Уменьшить сытость животного
+    fun reduceSatiety() {
+        if (satiety > 0) satiety--
     }
 
     // Подать голос

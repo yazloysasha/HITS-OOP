@@ -7,7 +7,7 @@ package organization
 class Command(
     val eventStart: () -> Unit,
     val eventEnd: () -> Unit,
-    val destroyTimer: () -> Unit
+    val eventCommand: (List<String>) -> Unit
 ) {
     private var active = true
     private var lives = true
@@ -17,21 +17,9 @@ class Command(
         print("Enter your command: /")
     }
 
-    // Помощь по командам
-    private fun helpCommand() {
-        println("Available commands:")
-        println("* /help - list of commands")
-        println("* /end - finish the program")
-        println("To start typing a command, press ENTER")
-        println("To start the timer again, press ENTER")
-    }
-
-    // Завершить программу
-    private fun endCommand() {
-        println("Finishing program...")
-
+    // Разрушить обработчик команд
+    fun destroy() {
         lives = false
-        destroyTimer()
     }
 
     fun launch() {
@@ -39,11 +27,8 @@ class Command(
             val args = readln().split(" ")
 
             if (active) {
-                when (args[0]) {
-                    "help" -> helpCommand()
-                    "end" -> endCommand()
-                }
-                if (args[0] != "help") {
+                eventCommand(args)
+                if (args[0] != "help" && args[0] != "end") {
                     eventEnd()
                 }
             } else {
@@ -55,9 +40,5 @@ class Command(
                 active = !active
             }
         }
-    }
-
-    init {
-        helpCommand()
     }
 }
