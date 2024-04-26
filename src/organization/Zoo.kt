@@ -1,6 +1,7 @@
 package organization
 
 import animals.*
+import kotlin.math.min
 import kotlinx.coroutines.*
 
 /*
@@ -53,31 +54,50 @@ class Zoo {
 
     // Удалить объект
     private fun removeCommand(args: List<String>) {
-        if (args.size < 2) {
+        if (args.size < 3) {
             return println("Not enough arguments in the command...")
         }
 
         val type = args[1]
-        val index = args[2].toInt() - 1
+        var index = args[2].toIntOrNull()
+
+        if (index == null || index < 1) {
+            return println("Index can only be a natural number...")
+        } else {
+            index--
+        }
+
         var name = ""
 
         when (type) {
             "parrot" -> {
+                if (parrots.isEmpty()) {
+                    return println("There are no parrots in the zoo yet...")
+                }
                 name = "Parrot"
+                index = min(index, parrots.size - 1)
                 parrots.removeAt(index)
             }
             "wolf" -> {
+                if (wolfs.isEmpty()) {
+                    return println("There are no wolfs in the zoo yet...")
+                }
                 name = "Wolf"
+                index = min(index, wolfs.size - 1)
                 wolfs.removeAt(index)
             }
             "lion" -> {
+                if (lions.isEmpty()) {
+                    return println("There are no lions in the zoo yet...")
+                }
                 name = "Lion"
+                index = min(index, lions.size - 1)
                 lions.removeAt(index)
             }
             else -> return println("Unknown type: $type")
         }
 
-        println("$name kicked out of the zoo...")
+        println("$name (${index + 1}) kicked out of the zoo...")
     }
 
     // Завершить программу
