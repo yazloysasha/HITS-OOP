@@ -5,6 +5,10 @@ import animals.Wolf
 import animals.Parrot
 import kotlinx.coroutines.*
 
+/*
+ * Зоопарк
+ */
+
 class Zoo {
     private val parrot = Parrot()
     private val wolf = Wolf()
@@ -19,6 +23,11 @@ class Zoo {
         // Событие, которое нужно запустить после отправки команды
         fun() {
             timer.start()
+        },
+
+        // Событие, которое нужно запустить при команде остановки
+        fun() {
+            timer.destroy()
         }
     )
 
