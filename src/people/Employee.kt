@@ -13,6 +13,13 @@ class Employee(
     var job = initJob // Должность
     var animal = initAnimal // Животное, закреплённое за сотрудником
 
+    // Редактировать сотрудника
+    fun edit(newName: String, newJob: String, newAnimal: String) {
+        name = newName
+        job = newJob
+        animal = newAnimal
+    }
+
     // Проверить статус сотрудника
     fun checkStatus() {
         println("[Employee] Name: $name | Sex: $sex | Job: $job")

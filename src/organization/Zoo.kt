@@ -33,6 +33,8 @@ class Zoo {
         print("* /add <parrot|wolf|lion|employee|visitor> <name?> <sex?:MALE|FEMALE>")
         println(" <job?> <parrot?|wolf?|lion?> - add new animal or person")
         println("* /remove <parrot|wolf|lion|employee|visitor> <index> - remove animal or person")
+        print("* /edit <parrot|wolf|lion|employee|visitor> <index> [<satiety> |")
+        println(" <name> <job?> <parrot?|wolf?|lion?>] - edit animal or person")
         print("* /status <zoo|parrot|wolf|lion|employee|visitor> <index?>")
         println(" - view the status of a zoo, animal or person")
         println("* /vote <parrot|wolf|lion> <index> - order an animal voice")
@@ -116,7 +118,7 @@ class Zoo {
                     return println("There are no parrots in the zoo yet...")
                 }
                 index = min(index, parrots.size - 1)
-                name = "Parrot"
+                name = "Parrot #${index + 1}"
                 parrots.removeAt(index)
             }
             "wolf" -> {
@@ -124,7 +126,7 @@ class Zoo {
                     return println("There are no wolfs in the zoo yet...")
                 }
                 index = min(index, wolfs.size - 1)
-                name = "Wolf"
+                name = "Wolf #${index + 1}"
                 wolfs.removeAt(index)
             }
             "lion" -> {
@@ -132,7 +134,7 @@ class Zoo {
                     return println("There are no lions in the zoo yet...")
                 }
                 index = min(index, lions.size - 1)
-                name = "Lion"
+                name = "Lion #${index + 1}"
                 lions.removeAt(index)
             }
             "employee" -> {
@@ -140,7 +142,7 @@ class Zoo {
                     return println("There are no employees in the zoo yet...")
                 }
                 index = min(index, employees.size - 1)
-                name = "Employee ${employees[index].name}"
+                name = "Employee #${index + 1} (${employees[index].name})"
                 employees.removeAt(index)
             }
             "visitor" -> {
@@ -148,13 +150,85 @@ class Zoo {
                     return println("There are no employees in the zoo yet...")
                 }
                 index = min(index, visitors.size - 1)
-                name = "Visitor ${visitors[index].name}"
+                name = "Visitor #${index + 1} (${visitors[index].name})"
                 visitors.removeAt(index)
             }
             else -> return println("Unknown type: $type")
         }
 
-        println("$name (${index + 1}) kicked out of the zoo...")
+        println("$name kicked out of the zoo...")
+    }
+
+    // Отредактировать объект
+    private fun editCommand(args: List<String>) {
+        if (args.size < 4) {
+            return println("Not enough arguments in the command...")
+        }
+
+        val type = args[1]
+        var index = args[2].toIntOrNull()
+
+        if (index == null || index < 1) {
+            return println("Index can only be a natural number...")
+        } else {
+            index--
+        }
+
+        val satiety = args[3].toIntOrNull()
+        if (satiety == null && (type == "parrot" || type == "wolf" || type == "lion")) {
+            return println("Index can only be a natural number...")
+        }
+
+        var name = ""
+
+        when (type) {
+            "parrot" -> {
+                if (parrots.isEmpty()) {
+                    return println("There are no parrots in the zoo yet...")
+                }
+                index = min(index, parrots.size - 1)
+                name = "Parrot"
+                parrots[index].edit(satiety!!)
+            }
+            "wolf" -> {
+                if (wolfs.isEmpty()) {
+                    return println("There are no wolfs in the zoo yet...")
+                }
+                index = min(index, wolfs.size - 1)
+                name = "Wolf"
+                wolfs[index].edit(satiety!!)
+            }
+            "lion" -> {
+                if (lions.isEmpty()) {
+                    return println("There are no lions in the zoo yet...")
+                }
+                index = min(index, lions.size - 1)
+                name = "Lion"
+                lions[index].edit(satiety!!)
+            }
+            "employee" -> {
+                if (employees.isEmpty()) {
+                    return println("There are no employees in the zoo yet...")
+                }
+                if (args.size < 6) {
+                    return println("Not enough arguments in the command...")
+                }
+                index = min(index, employees.size - 1)
+                name = "Employee"
+                employees[index].edit(args[3], args[4], args[5])
+            }
+            "visitor" -> {
+                if (visitors.isEmpty()) {
+                    return println("There are no employees in the zoo yet...")
+                }
+                index = min(index, visitors.size - 1)
+                name = "Visitor"
+                visitors[index].edit(args[3])
+            }
+            else -> return println("Unknown type: $type")
+        }
+
+        println("$name #${index + 1} successfully edited")
     }
 
     // Проверить статус объекта
@@ -312,6 +386,7 @@ class Zoo {
                 "help" -> helpCommand()
                 "add" -> addCommand(args)
                 "remove" -> removeCommand(args)
+                "edit" -> editCommand(args)
                 "status" -> statusCommand(args)
                 "vote" -> voteCommand(args)
                 "end" -> endCommand()

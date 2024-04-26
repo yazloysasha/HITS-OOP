@@ -15,6 +15,11 @@ open class Animal {
     val status: String // Статус животного
         get() = if (satiety < threshold) "HUNGRY" else "WELL-FED"
 
+    // Редактировать животного
+    fun edit(newSatiety: Int) {
+        satiety = newSatiety
+    }
+
     // Проверить статус животного
     fun checkStatus() {
         println("[$name] Status: $status | Satiety: $satiety")
@@ -23,10 +28,10 @@ open class Animal {
     // Уменьшить сытость животного
     fun reduceSatiety(number: Int) {
         if (satiety > 0) {
-            if (satiety == threshold) {
-                println("The lion #$number is hungry!")
-            }
             satiety--
+        }
+        if (satiety < threshold) {
+            println("The lion #$number is hungry!")
         }
     }
 
