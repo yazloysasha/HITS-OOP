@@ -1,5 +1,7 @@
 package people
 
+import animals.Animal
+
 /*
  * Сотрудник
  */
@@ -8,21 +10,13 @@ class Employee(
     initName: String,
     initSex: String,
     initJob: String,
-    initAnimal: String
+    initAnimal: Animal?
 ): Person(initName, initSex) {
     var job = initJob // Должность
-    var animal = parseAnimal(initAnimal) // Животное, закреплённое за сотрудником
-        set(value) {
-            field = parseAnimal(value)
-        }
-
-    // Получить животного по его типу
-    private fun parseAnimal(type: String): String {
-        return if (type == "parrot" || type == "wolf" || type == "lion") type else "NONE"
-    }
+    var animal = initAnimal // Животное, закреплённое за сотрудником
 
     // Редактировать сотрудника
-    fun edit(newName: String, newJob: String, newAnimal: String) {
+    fun edit(newName: String, newJob: String, newAnimal: Animal?) {
         name = newName
         job = newJob
         animal = newAnimal
@@ -30,6 +24,17 @@ class Employee(
 
     // Проверить статус сотрудника
     fun checkStatus() {
-        println("[Employee] Name: $name | Sex: $sex | Job: $job | Animal: $animal")
+        print("[Employee] Name: $name | Sex: $sex | Job: $job | Animal: ")
+
+        if (animal == null) {
+            println("NONE")
+        } else {
+            println(animal?.name)
+        }
+    }
+
+    // Выгнать сотрудника
+    fun kick() {
+        animal?.employee = null
     }
 }

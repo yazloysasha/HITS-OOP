@@ -75,8 +75,12 @@ class Zoo {
                 val job = args[4]
                 val animal = args[5]
 
+                val freeAnimal = getFreeAnimal(animal)
+                val newEmployee = Employee(name, sex, job, freeAnimal)
+                freeAnimal?.employee = newEmployee
+
                 title = "Employee $name"
-                employees.add(Employee(name, sex, job, animal))
+                employees.add(newEmployee)
             }
             "visitor" -> {
                 if (args.size < 4) {
@@ -110,7 +114,7 @@ class Zoo {
             index--
         }
 
-        var name = ""
+        var title = ""
 
         when (type) {
             "parrot" -> {
@@ -118,7 +122,8 @@ class Zoo {
                     return println("There are no parrots in the zoo yet...")
                 }
                 index = min(index, parrots.size - 1)
-                name = "Parrot #${index + 1}"
+                title = "Parrot #${index + 1}"
+                parrots[index].kill()
                 parrots.removeAt(index)
             }
             "wolf" -> {
@@ -126,7 +131,8 @@ class Zoo {
                     return println("There are no wolfs in the zoo yet...")
                 }
                 index = min(index, wolfs.size - 1)
-                name = "Wolf #${index + 1}"
+                title = "Wolf #${index + 1}"
+                wolfs[index].kill()
                 wolfs.removeAt(index)
             }
             "lion" -> {
@@ -134,7 +140,8 @@ class Zoo {
                     return println("There are no lions in the zoo yet...")
                 }
                 index = min(index, lions.size - 1)
-                name = "Lion #${index + 1}"
+                title = "Lion #${index + 1}"
+                lions[index].kill()
                 lions.removeAt(index)
             }
             "employee" -> {
@@ -142,7 +149,8 @@ class Zoo {
                     return println("There are no employees in the zoo yet...")
                 }
                 index = min(index, employees.size - 1)
-                name = "Employee #${index + 1} (${employees[index].name})"
+                title = "Employee #${index + 1} (${employees[index].name})"
+                employees[index].kick()
                 employees.removeAt(index)
             }
             "visitor" -> {
@@ -150,13 +158,13 @@ class Zoo {
                     return println("There are no employees in the zoo yet...")
                 }
                 index = min(index, visitors.size - 1)
-                name = "Visitor #${index + 1} (${visitors[index].name})"
+                title = "Visitor #${index + 1} (${visitors[index].name})"
                 visitors.removeAt(index)
             }
             else -> return println("Unknown type: $type")
         }
 
-        println("$name kicked out of the zoo...")
+        println("$title kicked out of the zoo...")
     }
 
     // Отредактировать объект
@@ -179,7 +187,7 @@ class Zoo {
             return println("Index can only be a natural number...")
         }
 
-        var name = ""
+        var title = ""
 
         when (type) {
             "parrot" -> {
@@ -187,7 +195,7 @@ class Zoo {
                     return println("There are no parrots in the zoo yet...")
                 }
                 index = min(index, parrots.size - 1)
-                name = "Parrot"
+                title = "Parrot"
                 parrots[index].edit(satiety!!)
             }
             "wolf" -> {
@@ -195,7 +203,7 @@ class Zoo {
                     return println("There are no wolfs in the zoo yet...")
                 }
                 index = min(index, wolfs.size - 1)
-                name = "Wolf"
+                title = "Wolf"
                 wolfs[index].edit(satiety!!)
             }
             "lion" -> {
@@ -203,7 +211,7 @@ class Zoo {
                     return println("There are no lions in the zoo yet...")
                 }
                 index = min(index, lions.size - 1)
-                name = "Lion"
+                title = "Lion"
                 lions[index].edit(satiety!!)
             }
             "employee" -> {
@@ -214,21 +222,29 @@ class Zoo {
                     return println("Not enough arguments in the command...")
                 }
                 index = min(index, employees.size - 1)
-                name = "Employee"
-                employees[index].edit(args[3], args[4], args[5])
+                title = "Employee"
+
+                val name = args[3]
+                val job = args[4]
+                val animal = args[5]
+
+                val freeAnimal = getFreeAnimal(animal)
+                freeAnimal?.employee = employees[index]
+
+                employees[index].edit(name, job, freeAnimal)
             }
             "visitor" -> {
                 if (visitors.isEmpty()) {
                     return println("There are no employees in the zoo yet...")
                 }
                 index = min(index, visitors.size - 1)
-                name = "Visitor"
+                title = "Visitor"
                 visitors[index].edit(args[3])
             }
             else -> return println("Unknown type: $type")
         }
 
-        println("$name #${index + 1} successfully edited")
+        println("$title #${index + 1} successfully edited")
     }
 
     // Проверить статус объекта
@@ -344,6 +360,25 @@ class Zoo {
         timer.destroy()
     }
 
+    // Получить свободное животное
+    private fun getFreeAnimal(type: String): Animal? {
+        var animals: List<Animal>? = null
+
+        when (type) {
+            "parrot" -> animals = parrots
+            "wolf" -> animals = wolfs
+            "lion" -> animals = lions
+        }
+
+        animals?.forEach { animal ->
+            if (animal.employee == null) {
+                return animal
+            }
+        }
+
+        return null
+    }
+
     // Пройти по виду животного
     private fun passAnimals(animals: List<Animal>) {
         var number = 1
@@ -351,20 +386,6 @@ class Zoo {
         animals.forEach { animal ->
             animal.reduceSatiety(number)
             number++
-        }
-    }
-
-    // Сотрудники проходят по животным и кормят их
-    private fun feedAnimals(employee: Employee, employeeNumber: Int, animals: List<Animal>) {
-        var animalNumber = 1
-
-        animals.forEach { animal ->
-            if (animal.status == "HUNGRY") {
-                print("Employee #$employeeNumber (${employee.name}, ${employee.job})")
-                println(" fed ${animal.name} #$animalNumber")
-                return animal.feed()
-            }
-            animalNumber++
         }
     }
 
@@ -401,15 +422,12 @@ class Zoo {
             passAnimals(wolfs)
             passAnimals(lions)
 
-            var number = 1
-
-            employees.forEach { employee ->
-                when (employee.animal) {
-                    "parrot" -> feedAnimals(employee, number, parrots)
-                    "wolf" -> feedAnimals(employee, number, wolfs)
-                    "lion" -> feedAnimals(employee, number, lions)
+            employees.forEachIndexed { index, employee ->
+                if (employee.animal != null && employee.animal?.status == "HUNGRY") {
+                    print("Employee #${index + 1} (${employee.name}, ${employee.job})")
+                    println(" fed ${employee.animal?.name}")
+                    employee.animal?.feed()
                 }
-                number++
             }
         }
     )

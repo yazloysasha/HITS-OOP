@@ -1,5 +1,7 @@
 package animals
 
+import people.Employee
+
 /*
  * Основа любого животного
  */
@@ -8,6 +10,9 @@ open class Animal {
     private var satiety = 32 // Сытость
     open var threshold = 0 // Порог сытости
     open var voice = "" // Голос
+
+    // Сотрудник, закреплённый за животным
+    var employee: Employee? = null
 
     val name: String? // Название животного
         get() = this::class.simpleName
@@ -43,5 +48,10 @@ open class Animal {
     // Покормить животного
     fun feed() {
         satiety += 4
+    }
+
+    // Убить животного
+    fun kill() {
+        employee?.animal = null
     }
 }
