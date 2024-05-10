@@ -1,12 +1,13 @@
 package organization
 
+import interfaces.IUtil
 import kotlinx.coroutines.*
 
 /*
  * Таймер
  */
 
-class Timer(val event: () -> Unit) {
+class Timer(val event: () -> Unit): IUtil {
     private var active = false
     private var lives = true
 
@@ -20,12 +21,11 @@ class Timer(val event: () -> Unit) {
         active = false
     }
 
-    // Разрушить таймер
-    fun destroy() {
+    override fun destroy() {
         lives = false
     }
 
-    suspend fun launch() {
+    override suspend fun launch() {
         while (lives) {
             if (active) event()
 

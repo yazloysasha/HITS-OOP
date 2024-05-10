@@ -2,6 +2,7 @@ package organization
 
 import people.*
 import animals.*
+import interfaces.IZoo
 import kotlin.math.min
 import kotlinx.coroutines.*
 
@@ -9,7 +10,7 @@ import kotlinx.coroutines.*
  * Зоопарк
  */
 
-class Zoo {
+class Zoo: IZoo {
     private val parrots = mutableListOf<Parrot>()
     private val wolfs = mutableListOf<Wolf>()
     private val lions = mutableListOf<Lion>()
@@ -17,8 +18,7 @@ class Zoo {
     private val employees = mutableListOf<Employee>()
     private val visitors = mutableListOf<Visitor>()
 
-    // Проверить статус зоопарка
-    private fun checkStatus() {
+    override fun checkStatus() {
         print("[Zoo] Parrots: ${parrots.size}")
         print(" | Wolfs: ${wolfs.size}")
         print(" | Lions: ${lions.size}")
@@ -26,8 +26,7 @@ class Zoo {
         println(" | Visitors: ${visitors.size}")
     }
 
-    // Помощь по командам
-    private fun helpCommand() {
+    override fun helpCommand() {
         println("Available commands:")
         println("* /help - list of commands")
         print("* /add <parrot|wolf|lion|employee|visitor> <name?> <sex?:MALE|FEMALE>")
@@ -43,8 +42,7 @@ class Zoo {
         println("To start the timer again, press ENTER")
     }
 
-    // Добавить новый объект
-    private fun addCommand(args: List<String>) {
+    override fun addCommand(args: List<String>) {
         if (args.size < 2) {
             return println("Not enough arguments in the command...")
         }
@@ -99,8 +97,7 @@ class Zoo {
         println("$title was invited to the zoo")
     }
 
-    // Удалить объект
-    private fun removeCommand(args: List<String>) {
+    override fun removeCommand(args: List<String>) {
         if (args.size < 3) {
             return println("Not enough arguments in the command...")
         }
@@ -167,8 +164,7 @@ class Zoo {
         println("$title kicked out of the zoo...")
     }
 
-    // Отредактировать объект
-    private fun editCommand(args: List<String>) {
+    override fun editCommand(args: List<String>) {
         if (args.size < 4) {
             return println("Not enough arguments in the command...")
         }
@@ -247,8 +243,7 @@ class Zoo {
         println("$title #${index + 1} successfully edited")
     }
 
-    // Проверить статус объекта
-    private fun statusCommand(args: List<String>) {
+    override fun statusCommand(args: List<String>) {
         if (args.size < 2) {
             return println("Not enough arguments in the command...")
         }
@@ -311,8 +306,7 @@ class Zoo {
         }
     }
 
-    // Приказать животному подать голос
-    private fun voteCommand(args: List<String>) {
+    override fun voteCommand(args: List<String>) {
         if (args.size < 3) {
             return println("Not enough arguments in the command...")
         }
@@ -353,15 +347,14 @@ class Zoo {
     }
 
     // Завершить программу
-    private fun endCommand() {
+    override fun endCommand() {
         println("Finishing program...")
 
         command.destroy()
         timer.destroy()
     }
 
-    // Получить свободное животное
-    private fun getFreeAnimal(type: String): Animal? {
+    override fun getFreeAnimal(type: String): Animal? {
         var animals: List<Animal>? = null
 
         when (type) {
@@ -379,8 +372,7 @@ class Zoo {
         return null
     }
 
-    // Пройти по виду животного
-    private fun passAnimals(animals: List<Animal>) {
+    override fun passAnimals(animals: List<Animal>) {
         var number = 1
 
         animals.forEach { animal ->

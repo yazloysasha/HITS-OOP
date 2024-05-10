@@ -1,5 +1,7 @@
 package organization
 
+import interfaces.IUtil
+
 /*
  * Обработчик команд
  */
@@ -8,16 +10,15 @@ class Command(
     val eventStart: () -> Unit,
     val eventEnd: () -> Unit,
     val eventCommand: (List<String>) -> Unit
-) {
+): IUtil {
     private var active = true
     private var lives = true
 
-    // Разрушить обработчик команд
-    fun destroy() {
+    override fun destroy() {
         lives = false
     }
 
-    fun launch() {
+    override suspend fun launch() {
         while (lives) {
             val args = readln().split(" ")
 
