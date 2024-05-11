@@ -7,4 +7,5 @@ package animals
 class Wolf: Animal() {
     override var threshold = 8
     override var voice = "Gav-gav"
+    override var limit = 8
 }

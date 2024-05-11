@@ -1,15 +1,10 @@
 package interfaces
 
-import animals.Animal
-
 /*
- * Интерфейс зоопарка
+ * Интерфейс команд зоопарка
  */
 
-interface IZoo {
-    // Проверить статус зоопарка
-    fun checkStatus()
-
+interface IZooCommands {
     // Помощь по командам
     fun helpCommand()
 
@@ -31,9 +26,9 @@ interface IZoo {
     // Завершить программу
     fun endCommand()
 
-    // Получить свободное животное
-    fun getFreeAnimal(type: String): Animal?
+    // Запустить таймер
+    fun startCommand()
 
-    // Пройти по виду животного
-    fun passAnimals(animals: List<Animal>)
+    // Остановить таймер
+    fun stopCommand()
 }

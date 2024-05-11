@@ -2,351 +2,184 @@ package organization
 
 import people.*
 import animals.*
-import interfaces.IZoo
-import kotlin.math.min
+import interfaces.*
 import kotlinx.coroutines.*
+import kotlin.reflect.KClass
 
 /*
  * Зоопарк
  */
 
-class Zoo: IZoo {
-    private val parrots = mutableListOf<Parrot>()
-    private val wolfs = mutableListOf<Wolf>()
-    private val lions = mutableListOf<Lion>()
+class Zoo: IZooStorage, IZooCommands, ITick {
+    override val entities = mutableListOf<Entity>()
+    override val enclosures = mutableListOf<Enclosure>()
+    override val employees = mutableListOf<Employee>()
+    override val visitors = mutableListOf<Visitor>()
 
-    private val employees = mutableListOf<Employee>()
-    private val visitors = mutableListOf<Visitor>()
+    // В команде недостаточно аргументов
+    private fun notEnoughArguments() {
+        println("Not enough arguments in the command...")
+    }
 
-    override fun checkStatus() {
-        print("[Zoo] Parrots: ${parrots.size}")
-        print(" | Wolfs: ${wolfs.size}")
-        print(" | Lions: ${lions.size}")
+    // Получить элемент по ID
+    private fun getEntityById(id: Int, parent: KClass<*> = Entity::class): Entity? {
+        for (entity in entities) {
+            if (id == entity.id && parent.isInstance(entity)) {
+                return entity
+            }
+        }
+
+        return null
+    }
+
+    private fun checkStatus() {
+        print("[Zoo] Enclosures: ${enclosures.size}")
         print(" | Employees: ${employees.size}")
         println(" | Visitors: ${visitors.size}")
     }
 
     override fun helpCommand() {
         println("Available commands:")
-        println("* /help - list of commands")
-        print("* /add <parrot|wolf|lion|employee|visitor> <name?> <sex?:MALE|FEMALE>")
-        println(" <job?> <parrot?|wolf?|lion?> - add new animal or person")
-        println("* /remove <parrot|wolf|lion|employee|visitor> <index> - remove animal or person")
-        print("* /edit <parrot|wolf|lion|employee|visitor> <index> [<satiety> |")
-        println(" <name> <job?> <parrot?|wolf?|lion?>] - edit animal or person")
-        print("* /status <zoo|parrot|wolf|lion|employee|visitor> <index?>")
-        println(" - view the status of a zoo, animal or person")
-        println("* /vote <parrot|wolf|lion> <index> - order an animal voice")
-        println("* /end - finish the program")
+        println("* help - list of commands")
+        println("* add enclosure - add new enclosure")
+        println("* add <parrot|wolf|lion> <EnclosureID> - add new animal to enclosure")
+        println("* add employee <name> <sex:MALE|FEMALE> <job> - add new employee")
+        println("* add visitor <name> <sex:MALE|FEMALE> - add new visitor")
+        println("* remove <EntityID> - remove enclosure, animal or person")
+        println("* edit <AnimalID> <satiety> - edit animal")
+        println("* edit <EmployeeID> <name> <job> - edit employee")
+        println("* edit <VisitorID> <name> - edit visitor")
+        println("* status <zoo|EntityID> - view the status of a zoo, enclosure, animal or person")
+        println("* vote <AnimalID> - order an animal voice")
+        println("* end - finish the program")
         println("To pause the zoo or start typing a command, press ENTER")
         println("To start the timer again, press ENTER")
     }
 
     override fun addCommand(args: List<String>) {
-        if (args.size < 2) {
-            return println("Not enough arguments in the command...")
-        }
+        if (args.size < 2) return notEnoughArguments()
 
-        val type = args[1]
-        var title = ""
+        when (val type = args[1]) {
+            "enclosure" -> {
+                val enclosure = Enclosure()
+                enclosures.add(enclosure)
+                entities.add(enclosure)
+            }
+            "parrot", "wolf", "lion" -> {
+                if (args.size < 3) return notEnoughArguments()
 
-        when (type) {
-            "parrot" -> {
-                title = "Parrot"
-                parrots.add(Parrot())
-            }
-            "wolf" -> {
-                title = "Wolf"
-                wolfs.add(Wolf())
-            }
-            "lion" -> {
-                title = "Lion"
-                lions.add(Lion())
+                val enclosure = getEntityById(args[2].toInt(), Enclosure::class) as IControlEnclosure?
+                    ?: return println("Couldn't find an enclosure with this ID")
+
+                val name = type.capitalize()
+
+                if (!enclosure.addingIsAvailable(name)) {
+                    return println("You cannot add $name to this enclosure")
+                }
+
+                val animal = when (type) {
+                    "parrot" -> Parrot()
+                    "wolf" -> Wolf()
+                    "lion" -> Lion()
+                    else -> Animal()
+                }
+                enclosure.addAnimal(animal)
+                entities.add(animal)
             }
             "employee" -> {
-                if (args.size < 6) {
-                    return println("Not enough arguments in the command...")
-                }
+                if (args.size < 5) return notEnoughArguments()
 
-                val name = args[2]
-                val sex = args[3]
-                val job = args[4]
-                val animal = args[5]
-
-                val freeAnimal = getFreeAnimal(animal)
-                val newEmployee = Employee(name, sex, job, freeAnimal)
-                freeAnimal?.employee = newEmployee
-
-                title = "Employee $name"
-                employees.add(newEmployee)
+                val employee = Employee(args[2], args[3], args[4])
+                employees.add(employee)
+                entities.add(employee)
             }
             "visitor" -> {
-                if (args.size < 4) {
-                    return println("Not enough arguments in the command...")
-                }
+                if (args.size < 4) return notEnoughArguments()
 
-                val name = args[2]
-                val sex = args[3]
-
-                title = "Visitor $name"
-                visitors.add(Visitor(name, sex))
+                val visitor = Visitor(args[2], args[3])
+                visitors.add(visitor)
+                entities.add(visitor)
             }
-            else -> return println("Unknown type: $type")
         }
-
-        println("$title was invited to the zoo")
     }
 
     override fun removeCommand(args: List<String>) {
-        if (args.size < 3) {
-            return println("Not enough arguments in the command...")
+        if (args.size < 2) return notEnoughArguments()
+
+        val entity = getEntityById(args[1].toInt())
+            ?: return println("Couldn't find an entity with this ID")
+
+        entity.destroy()
+        entities.remove(entity)
+
+        when {
+            Enclosure::class.isInstance(entity) -> {
+                for (animal in (entity as IControlEnclosure).animals) {
+                    animal.destroy()
+                    entities.remove(animal)
+                }
+                enclosures.remove(entity)
+            }
+            Animal::class.isInstance(entity) -> {
+                for (enclosure: IControlEnclosure in enclosures) {
+                    if (enclosure.removeAnimal(entity as Animal)) break
+                }
+            }
+            Employee::class.isInstance(entity) -> {
+                employees.remove(entity)
+            }
+            Visitor::class.isInstance(entity) -> {
+                visitors.remove(entity)
+            }
         }
-
-        val type = args[1]
-        var index = args[2].toIntOrNull()
-
-        if (index == null || index < 1) {
-            return println("Index can only be a natural number...")
-        } else {
-            index--
-        }
-
-        var title = ""
-
-        when (type) {
-            "parrot" -> {
-                if (parrots.isEmpty()) {
-                    return println("There are no parrots in the zoo yet...")
-                }
-                index = min(index, parrots.size - 1)
-                title = "Parrot #${index + 1}"
-                parrots[index].kill()
-                parrots.removeAt(index)
-            }
-            "wolf" -> {
-                if (wolfs.isEmpty()) {
-                    return println("There are no wolfs in the zoo yet...")
-                }
-                index = min(index, wolfs.size - 1)
-                title = "Wolf #${index + 1}"
-                wolfs[index].kill()
-                wolfs.removeAt(index)
-            }
-            "lion" -> {
-                if (lions.isEmpty()) {
-                    return println("There are no lions in the zoo yet...")
-                }
-                index = min(index, lions.size - 1)
-                title = "Lion #${index + 1}"
-                lions[index].kill()
-                lions.removeAt(index)
-            }
-            "employee" -> {
-                if (employees.isEmpty()) {
-                    return println("There are no employees in the zoo yet...")
-                }
-                index = min(index, employees.size - 1)
-                title = "Employee #${index + 1} (${employees[index].name})"
-                employees[index].kick()
-                employees.removeAt(index)
-            }
-            "visitor" -> {
-                if (visitors.isEmpty()) {
-                    return println("There are no employees in the zoo yet...")
-                }
-                index = min(index, visitors.size - 1)
-                title = "Visitor #${index + 1} (${visitors[index].name})"
-                visitors.removeAt(index)
-            }
-            else -> return println("Unknown type: $type")
-        }
-
-        println("$title kicked out of the zoo...")
     }
 
     override fun editCommand(args: List<String>) {
-        if (args.size < 4) {
-            return println("Not enough arguments in the command...")
+        if (args.size < 3) return notEnoughArguments()
+
+        val entity = getEntityById(args[1].toInt())
+            ?: return println("Couldn't find an entity with this ID")
+
+        when {
+            Animal::class.isInstance(entity) -> {
+                (entity as Animal).edit(args[2].toInt())
+            }
+            Employee::class.isInstance(entity) -> {
+                if (args.size < 4) return notEnoughArguments()
+                (entity as Employee).edit(args[2], args[3])
+            }
+            Visitor::class.isInstance(entity) -> {
+                (entity as Visitor).edit(args[2])
+            }
+            else -> return println("This entity cannot be edited")
         }
 
-        val type = args[1]
-        var index = args[2].toIntOrNull()
-
-        if (index == null || index < 1) {
-            return println("Index can only be a natural number...")
-        } else {
-            index--
-        }
-
-        val satiety = args[3].toIntOrNull()
-        if (satiety == null && (type == "parrot" || type == "wolf" || type == "lion")) {
-            return println("Index can only be a natural number...")
-        }
-
-        var title = ""
-
-        when (type) {
-            "parrot" -> {
-                if (parrots.isEmpty()) {
-                    return println("There are no parrots in the zoo yet...")
-                }
-                index = min(index, parrots.size - 1)
-                title = "Parrot"
-                parrots[index].edit(satiety!!)
-            }
-            "wolf" -> {
-                if (wolfs.isEmpty()) {
-                    return println("There are no wolfs in the zoo yet...")
-                }
-                index = min(index, wolfs.size - 1)
-                title = "Wolf"
-                wolfs[index].edit(satiety!!)
-            }
-            "lion" -> {
-                if (lions.isEmpty()) {
-                    return println("There are no lions in the zoo yet...")
-                }
-                index = min(index, lions.size - 1)
-                title = "Lion"
-                lions[index].edit(satiety!!)
-            }
-            "employee" -> {
-                if (employees.isEmpty()) {
-                    return println("There are no employees in the zoo yet...")
-                }
-                if (args.size < 6) {
-                    return println("Not enough arguments in the command...")
-                }
-                index = min(index, employees.size - 1)
-                title = "Employee"
-
-                val name = args[3]
-                val job = args[4]
-                val animal = args[5]
-
-                val freeAnimal = getFreeAnimal(animal)
-                freeAnimal?.employee = employees[index]
-
-                employees[index].edit(name, job, freeAnimal)
-            }
-            "visitor" -> {
-                if (visitors.isEmpty()) {
-                    return println("There are no employees in the zoo yet...")
-                }
-                index = min(index, visitors.size - 1)
-                title = "Visitor"
-                visitors[index].edit(args[3])
-            }
-            else -> return println("Unknown type: $type")
-        }
-
-        println("$title #${index + 1} successfully edited")
+        println("${entity.prefix} successfully edited")
     }
 
     override fun statusCommand(args: List<String>) {
-        if (args.size < 2) {
-            return println("Not enough arguments in the command...")
-        }
+        if (args.size < 2) return notEnoughArguments()
 
-        val type = args[1]
+        when (args[1]) {
+            "zoo" -> checkStatus()
+            else -> {
+                val entity = getEntityById(args[1].toInt())
+                    ?: return println("Couldn't find an entity with this ID")
 
-        if (type == "zoo") {
-            return checkStatus()
-        }
-
-        if (args.size < 3) {
-            return println("Not enough arguments in the command...")
-        }
-
-        var index = args[2].toIntOrNull()
-
-        if (index == null || index < 1) {
-            return println("Index can only be a natural number...")
-        } else {
-            index--
-        }
-
-        when (type) {
-            "parrot" -> {
-                if (parrots.isEmpty()) {
-                    return println("There are no parrots in the zoo yet...")
-                }
-                index = min(index, parrots.size - 1)
-                parrots[index].checkStatus()
+                entity.checkStatus(1)
             }
-            "wolf" -> {
-                if (wolfs.isEmpty()) {
-                    return println("There are no wolfs in the zoo yet...")
-                }
-                index = min(index, wolfs.size - 1)
-                wolfs[index].checkStatus()
-            }
-            "lion" -> {
-                if (lions.isEmpty()) {
-                    return println("There are no lions in the zoo yet...")
-                }
-                index = min(index, lions.size - 1)
-                lions[index].checkStatus()
-            }
-            "employee" -> {
-                if (employees.isEmpty()) {
-                    return println("There are no employees in the zoo yet...")
-                }
-                index = min(index, employees.size - 1)
-                employees[index].checkStatus()
-            }
-            "visitor" -> {
-                if (visitors.isEmpty()) {
-                    return println("There are no visitors in the zoo yet...")
-                }
-                index = min(index, visitors.size - 1)
-                visitors[index].checkStatus()
-            }
-            else -> return println("Unknown type: $type")
         }
     }
 
     override fun voteCommand(args: List<String>) {
-        if (args.size < 3) {
-            return println("Not enough arguments in the command...")
-        }
+        if (args.size < 2) return notEnoughArguments()
 
-        val type = args[1]
-        var index = args[2].toIntOrNull()
+        val animal = getEntityById(args[1].toInt(), Animal::class) as Animal?
+            ?: return println("Couldn't find an animal with this ID")
 
-        if (index == null || index < 1) {
-            return println("Index can only be a natural number...")
-        } else {
-            index--
-        }
-
-        when (type) {
-            "parrot" -> {
-                if (parrots.isEmpty()) {
-                    return println("There are no parrots in the zoo yet...")
-                }
-                index = min(index, parrots.size - 1)
-                parrots[index].vote()
-            }
-            "wolf" -> {
-                if (wolfs.isEmpty()) {
-                    return println("There are no wolfs in the zoo yet...")
-                }
-                index = min(index, wolfs.size - 1)
-                wolfs[index].vote()
-            }
-            "lion" -> {
-                if (lions.isEmpty()) {
-                    return println("There are no lions in the zoo yet...")
-                }
-                index = min(index, lions.size - 1)
-                lions[index].vote()
-            }
-            else -> return println("Unknown type: $type")
-        }
+        animal.vote()
     }
 
-    // Завершить программу
     override fun endCommand() {
         println("Finishing program...")
 
@@ -354,76 +187,22 @@ class Zoo: IZoo {
         timer.destroy()
     }
 
-    override fun getFreeAnimal(type: String): Animal? {
-        var animals: List<Animal>? = null
-
-        when (type) {
-            "parrot" -> animals = parrots
-            "wolf" -> animals = wolfs
-            "lion" -> animals = lions
-        }
-
-        animals?.forEach { animal ->
-            if (animal.employee == null) {
-                return animal
-            }
-        }
-
-        return null
+    override fun startCommand() {
+        println("The zoo is alive again!")
+        timer.start()
     }
 
-    override fun passAnimals(animals: List<Animal>) {
-        var number = 1
-
-        animals.forEach { animal ->
-            animal.reduceSatiety(number)
-            number++
-        }
+    override fun stopCommand() {
+        println("The zoo is frozen...")
+        timer.stop()
     }
 
-    private val command = Command(
-        // Событие, которое нужно запустить перед отправкой команды
-        fun() {
-            println("The zoo is frozen...")
-            timer.stop()
-        },
+    override fun tick(zoo: IZooStorage) {
+        entities.forEach { entity -> entity.tick(zoo) }
+    }
 
-        // Событие, которое нужно запустить после отправки команды
-        fun() {
-            println("The zoo is alive again!")
-            timer.start()
-        },
-
-        // Событие для обработки команд
-        fun(args: List<String>) {
-            when (args[0]) {
-                "help" -> helpCommand()
-                "add" -> addCommand(args)
-                "remove" -> removeCommand(args)
-                "edit" -> editCommand(args)
-                "status" -> statusCommand(args)
-                "vote" -> voteCommand(args)
-                "end" -> endCommand()
-            }
-        }
-    )
-
-    private val timer = Timer(
-        // Событие, происходящее каждый тик
-        fun() {
-            passAnimals(parrots)
-            passAnimals(wolfs)
-            passAnimals(lions)
-
-            employees.forEachIndexed { index, employee ->
-                if (employee.animal != null && employee.animal?.status == "HUNGRY") {
-                    print("Employee #${index + 1} (${employee.name}, ${employee.job})")
-                    println(" fed ${employee.animal?.name}")
-                    employee.animal?.feed()
-                }
-            }
-        }
-    )
+    private val command = Command(this)
+    private val timer = Timer(this)
 
     suspend fun launch() = coroutineScope {
         launch { command.launch() }

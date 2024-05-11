@@ -1,20 +1,31 @@
 package people
 
+import interfaces.IZooStorage
+
 /*
  * Посетитель
  */
 
 class Visitor(
-    initName: String,
-    initSex: String
-): Person(initName, initSex) {
+    firstname: String,
+    sex: String,
+): Person(firstname, sex) {
     // Редактировать посетителя
-    fun edit(newName: String) {
-        name = newName
+    fun edit(newFirstname: String) {
+        firstname = newFirstname
+    }
+
+    // Уйти из зоопарка
+    override fun destroy() {
+        println("[$prefix] I'm leaving the zoo - $firstname, $sex")
     }
 
     // Проверить статус посетителя
-    fun checkStatus() {
-        println("[Visitor] Name: $name | Sex: $sex")
+    override fun checkStatus(rights: Int) {
+        println("[$prefix] Name: $name | Sex: $sex")
+    }
+
+    override fun tick(zoo: IZooStorage) {
+        //
     }
 }

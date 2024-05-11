@@ -1,10 +1,14 @@
 package people
 
+import organization.Entity
+
 /*
  * Основа любого человека
  */
 
-open class Person(initName: String, initSex: String) {
-    var name = initName // Имя
+abstract class Person(
+    var firstname: String, // Имя
+    initSex: String
+): Entity() {
     val sex = if (initSex == "MALE") "MALE" else "FEMALE" // Пол
 }

@@ -1,40 +1,64 @@
 package people
 
-import animals.Animal
+import kotlin.random.Random
+import interfaces.IZooStorage
+import interfaces.IControlEnclosure
 
 /*
  * Сотрудник
  */
 
 class Employee(
-    initName: String,
-    initSex: String,
-    initJob: String,
-    initAnimal: Animal?
-): Person(initName, initSex) {
-    var job = initJob // Должность
-    var animal = initAnimal // Животное, закреплённое за сотрудником
+    firstname: String,
+    sex: String,
+    private var job: String // Должность
+): Person(firstname, sex) {
+    // Пройтись по вольерам
+    private fun walkThroughEnclosures(enclosures: MutableList<IControlEnclosure>) {
+        // Вольер с минимальным количеством еды
+        var badEnclosure: IControlEnclosure? = null
 
-    // Редактировать сотрудника
-    fun edit(newName: String, newJob: String, newAnimal: Animal?) {
-        name = newName
-        job = newJob
-        animal = newAnimal
-    }
+        // Количество еды
+        val amount = Random.nextInt(8) + 1
 
-    // Проверить статус сотрудника
-    fun checkStatus() {
-        print("[Employee] Name: $name | Sex: $sex | Job: $job | Animal: ")
+        enclosures.forEach { enclosure ->
+            if (enclosure.puttingFoodIsAvailable(amount)) {
+                if (badEnclosure == null || enclosure.food < badEnclosure!!.food) {
+                    badEnclosure = enclosure
+                }
+            }
+        }
 
-        if (animal == null) {
-            println("NONE")
-        } else {
-            println(animal?.name)
+        if (badEnclosure != null) {
+            putFoodInEnclosure(badEnclosure!!, amount)
         }
     }
 
-    // Выгнать сотрудника
-    fun kick() {
-        animal?.employee = null
+    // Положить еду в вольер
+    private fun putFoodInEnclosure(enclosure: IControlEnclosure, amount: Int) {
+        enclosure.putFood(amount)
+
+        println("[$prefix] I put $amount food in the ${enclosure.prefix} - $firstname, $sex ($job)")
+    }
+
+    // Редактировать сотрудника
+    fun edit(newFirstname: String, newJob: String) {
+        firstname = newFirstname
+        job = newJob
+    }
+
+    // Уйти из зоопарка
+    override fun destroy() {
+        println("[$prefix] I'm leaving the zoo - $firstname, $sex ($job)")
+    }
+
+    // Проверить статус сотрудника
+    override fun checkStatus(rights: Int) {
+        print("[$prefix] Name: $firstname | Sex: $sex | Job: $job")
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun tick(zoo: IZooStorage) {
+        walkThroughEnclosures(zoo.enclosures as MutableList<IControlEnclosure>)
     }
 }

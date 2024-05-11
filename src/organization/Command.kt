@@ -1,16 +1,13 @@
 package organization
 
 import interfaces.IUtil
+import interfaces.IZooCommands
 
 /*
  * Обработчик команд
  */
 
-class Command(
-    val eventStart: () -> Unit,
-    val eventEnd: () -> Unit,
-    val eventCommand: (List<String>) -> Unit
-): IUtil {
+class Command(private val zoo: IZooCommands): IUtil {
     private var active = true
     private var lives = true
 
@@ -22,12 +19,20 @@ class Command(
         while (lives) {
             val line = readln()
             if (line.isEmpty()) {
-                if (active) eventEnd() else eventStart()
+                if (active) zoo.startCommand() else zoo.stopCommand()
                 active = !active
             }
 
             val args = line.split(" ")
-            eventCommand(args)
+            when (args[0]) {
+                "help" -> zoo.helpCommand()
+                "add" -> zoo.addCommand(args)
+                "remove" -> zoo.removeCommand(args)
+                "edit" -> zoo.editCommand(args)
+                "status" -> zoo.statusCommand(args)
+                "vote" -> zoo.voteCommand(args)
+                "end" -> zoo.endCommand()
+            }
         }
     }
 }

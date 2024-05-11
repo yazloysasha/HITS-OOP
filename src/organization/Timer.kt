@@ -7,7 +7,7 @@ import kotlinx.coroutines.*
  * Таймер
  */
 
-class Timer(val event: () -> Unit): IUtil {
+class Timer(private val zoo: Zoo): IUtil {
     private var active = false
     private var lives = true
 
@@ -27,7 +27,7 @@ class Timer(val event: () -> Unit): IUtil {
 
     override suspend fun launch() {
         while (lives) {
-            if (active) event()
+            if (active) zoo.tick(zoo)
 
             delay(1000)
         }

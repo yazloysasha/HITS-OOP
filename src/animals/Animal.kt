@@ -1,57 +1,65 @@
 package animals
 
-import people.Employee
+import organization.Entity
+import interfaces.IZooStorage
 
 /*
  * Основа любого животного
  */
 
-open class Animal {
-    private var satiety = 32 // Сытость
+open class Animal: Entity() {
+    private var satiety = 0 // Сытость
     open var threshold = 0 // Порог сытости
     open var voice = "" // Голос
-
-    // Сотрудник, закреплённый за животным
-    var employee: Employee? = null
-
-    val name: String? // Название животного
-        get() = this::class.simpleName
+    open var limit = 0 // Лимит животных в одном вольере
 
     val status: String // Статус животного
         get() = if (satiety < threshold) "HUNGRY" else "WELL-FED"
+
+    // Поесть
+    fun eat(amount: Int) {
+        satiety += amount
+
+        println("[$prefix] I have eaten!")
+    }
+
+    // Проголодаться
+    private fun reduceSatiety() {
+        if (satiety > 0) {
+            satiety--
+        }
+
+        if (satiety < threshold) {
+            println("[$prefix] I am hungry!")
+        }
+    }
+
+    // Подать голос
+    fun vote() {
+        println("[$prefix] I speak: $voice")
+    }
 
     // Редактировать животного
     fun edit(newSatiety: Int) {
         satiety = newSatiety
     }
 
+    // Уйти из зоопарка
+    override fun destroy() {
+        println("[$prefix] I'm leaving the zoo")
+    }
+
     // Проверить статус животного
-    fun checkStatus() {
-        println("[$name] Status: $status | Satiety: $satiety")
+    override fun checkStatus(rights: Int) {
+        println(
+            when (rights) {
+                0 -> "[$prefix] I'm here!"
+                else -> "[$prefix] Status: $status | Satiety: $satiety"
+            }
+        )
     }
 
-    // Уменьшить сытость животного
-    fun reduceSatiety(number: Int) {
-        if (satiety > 0) {
-            satiety--
-        }
-        if (satiety < threshold) {
-            println("The lion #$number is hungry!")
-        }
-    }
-
-    // Подать голос
-    fun vote() {
-        println("$name speaks: $voice")
-    }
-
-    // Покормить животного
-    fun feed() {
-        satiety += 4
-    }
-
-    // Убить животного
-    fun kill() {
-        employee?.animal = null
+    override fun tick(zoo: IZooStorage) {
+        reduceSatiety()
     }
 }
