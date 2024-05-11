@@ -4,6 +4,7 @@ import people.*
 import animals.*
 import interfaces.*
 import kotlinx.coroutines.*
+import kotlin.random.Random
 import kotlin.reflect.KClass
 
 /*
@@ -33,6 +34,44 @@ class Zoo: IZooStorage, IZooCommands, ITick {
         return null
     }
 
+    // Получить доступный для заселения вольер
+    private fun getAvailableEnclosure(name: String): Enclosure? {
+        for (enclosure in enclosures) {
+            if (enclosure.addingIsAvailable(name)) {
+                return enclosure
+            }
+        }
+
+        return null
+    }
+
+    // Создать 16 случайных животных и распределить по вольерам
+    private fun createAnimals() {
+        val names = arrayOf("Parrot", "Wolf", "Lion")
+
+        for (i in 0 .. 16) {
+            val name = names[Random.nextInt(names.size)]
+            var enclosure = getAvailableEnclosure(name)
+
+            if (enclosure == null) {
+                enclosure = Enclosure()
+                enclosures.add(enclosure)
+                entities.add(enclosure)
+            }
+
+            val animal = when (name) {
+                "Parrot" -> Parrot()
+                "Wolf" -> Wolf()
+                "Lion" -> Lion()
+                else -> Animal()
+            }
+
+            enclosure.addAnimal(animal)
+            entities.add(animal)
+        }
+    }
+
+    // Проверить статус зоопарка
     private fun checkStatus() {
         print("[Zoo] Enclosures: ${enclosures.size}")
         print(" | Employees: ${employees.size}")
@@ -211,6 +250,7 @@ class Zoo: IZooStorage, IZooCommands, ITick {
     }
 
     init {
+        createAnimals()
         helpCommand()
     }
 }

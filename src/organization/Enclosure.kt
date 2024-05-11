@@ -17,7 +17,7 @@ class Enclosure: IOpenEnclosure, IControlEnclosure, Entity() {
     override val animals: List<Animal>
         get() = animalsInOpenPart + animalsInClosedPart
 
-    private val limit = 128 // Максимальный запас еды
+    private val limit = 512 // Максимальный запас еды
     override var food = 0 // Запас еды в вольере
 
     // Перемещения животных по вольеру

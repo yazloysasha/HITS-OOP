@@ -19,7 +19,7 @@ class Employee(
         var badEnclosure: IControlEnclosure? = null
 
         // Количество еды
-        val amount = Random.nextInt(8) + 1
+        val amount = Random.nextInt(16) + 4
 
         for (enclosure in enclosures) {
             if (!enclosure.puttingFoodIsAvailable(amount)) continue
