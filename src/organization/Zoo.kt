@@ -38,7 +38,7 @@ class Zoo: IZoo {
         println(" - view the status of a zoo, animal or person")
         println("* /vote <parrot|wolf|lion> <index> - order an animal voice")
         println("* /end - finish the program")
-        println("To start typing a command, press ENTER")
+        println("To pause the zoo or start typing a command, press ENTER")
         println("To start the timer again, press ENTER")
     }
 
@@ -384,6 +384,7 @@ class Zoo: IZoo {
     private val command = Command(
         // Событие, которое нужно запустить перед отправкой команды
         fun() {
+            println("The zoo is frozen...")
             timer.stop()
         },
 

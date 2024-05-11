@@ -20,21 +20,14 @@ class Command(
 
     override suspend fun launch() {
         while (lives) {
-            val args = readln().split(" ")
-
-            if (active) {
-                eventCommand(args)
-                if (args[0] != "help" && args[0] != "end") {
-                    eventEnd()
-                }
-            } else {
-                print("Enter your command: /")
-                eventStart()
-            }
-
-            if (args[0] != "help") {
+            val line = readln()
+            if (line.isEmpty()) {
+                if (active) eventEnd() else eventStart()
                 active = !active
             }
+
+            val args = line.split(" ")
+            eventCommand(args)
         }
     }
 }
