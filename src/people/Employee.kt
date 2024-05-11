@@ -14,23 +14,23 @@ class Employee(
     private var job: String // Должность
 ): Person(firstname, sex) {
     // Пройтись по вольерам
-    private fun walkThroughEnclosures(enclosures: MutableList<IControlEnclosure>) {
+    private fun walkThroughEnclosures(enclosures: List<IControlEnclosure>) {
         // Вольер с минимальным количеством еды
         var badEnclosure: IControlEnclosure? = null
 
         // Количество еды
         val amount = Random.nextInt(8) + 1
 
-        enclosures.forEach { enclosure ->
-            if (enclosure.puttingFoodIsAvailable(amount)) {
-                if (badEnclosure == null || enclosure.food < badEnclosure!!.food) {
-                    badEnclosure = enclosure
-                }
+        for (enclosure in enclosures) {
+            if (!enclosure.puttingFoodIsAvailable(amount)) continue
+
+            if (badEnclosure == null || enclosure.food < badEnclosure.food) {
+                badEnclosure = enclosure
             }
         }
 
         if (badEnclosure != null) {
-            putFoodInEnclosure(badEnclosure!!, amount)
+            putFoodInEnclosure(badEnclosure, amount)
         }
     }
 
@@ -57,8 +57,7 @@ class Employee(
         print("[$prefix] Name: $firstname | Sex: $sex | Job: $job")
     }
 
-    @Suppress("UNCHECKED_CAST")
     override fun tick(zoo: IZooStorage) {
-        walkThroughEnclosures(zoo.enclosures as MutableList<IControlEnclosure>)
+        walkThroughEnclosures(zoo.enclosures)
     }
 }

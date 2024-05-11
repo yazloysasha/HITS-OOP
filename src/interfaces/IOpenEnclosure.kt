@@ -7,6 +7,8 @@ import animals.Animal
  */
 
 interface IOpenEnclosure {
+    var prefix: String // Префикс
+
     // Показать животных, находящихся в открытой части
     fun showAnimalsInOpenPart()
 

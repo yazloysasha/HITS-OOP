@@ -15,6 +15,7 @@ class Zoo: IZooStorage, IZooCommands, ITick {
     override val enclosures = mutableListOf<Enclosure>()
     override val employees = mutableListOf<Employee>()
     override val visitors = mutableListOf<Visitor>()
+    override val shop = Shop()
 
     // В команде недостаточно аргументов
     private fun notEnoughArguments() {

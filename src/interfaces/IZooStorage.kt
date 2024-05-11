@@ -2,6 +2,7 @@ package interfaces
 
 import people.Visitor
 import people.Employee
+import organization.Shop
 import organization.Entity
 import organization.Enclosure
 
@@ -14,4 +15,5 @@ interface IZooStorage {
     val enclosures: MutableList<Enclosure>
     val employees: MutableList<Employee>
     val visitors: MutableList<Visitor>
+    val shop: Shop
 }
