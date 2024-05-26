@@ -10,7 +10,7 @@ import interfaces.IControlEnclosure
  * Вольер
  */
 
-class Enclosure: IOpenEnclosure, IControlEnclosure, Entity() {
+class Enclosure : IOpenEnclosure, IControlEnclosure, Entity() {
     private val animalsInOpenPart = mutableListOf<Animal>() // Животные в открытой части
     private val animalsInClosedPart = mutableListOf<Animal>() // Животные в закрытой части
 

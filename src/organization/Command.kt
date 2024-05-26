@@ -7,7 +7,7 @@ import interfaces.IZooCommands
  * Обработчик команд
  */
 
-class Command(private val zoo: IZooCommands): IUtil {
+class Command(private val zoo: IZooCommands) : IUtil {
     private var active = true
     private var lives = true
 

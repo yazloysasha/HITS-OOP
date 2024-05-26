@@ -12,7 +12,7 @@ class Employee(
     firstname: String,
     sex: String,
     private var job: String // Должность
-): Person(firstname, sex) {
+) : Person(firstname, sex) {
     // Пройтись по вольерам
     private fun walkThroughEnclosures(enclosures: List<IControlEnclosure>) {
         // Вольер с минимальным количеством еды

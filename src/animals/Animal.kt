@@ -7,7 +7,7 @@ import interfaces.IZooStorage
  * Основа любого животного
  */
 
-open class Animal: Entity() {
+open class Animal : Entity() {
     private var satiety = 0 // Сытость
     open var threshold = 0 // Порог сытости
     open var voice = "" // Голос

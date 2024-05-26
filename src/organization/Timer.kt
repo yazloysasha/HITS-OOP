@@ -7,7 +7,7 @@ import kotlinx.coroutines.*
  * Таймер
  */
 
-class Timer(private val zoo: Zoo): IUtil {
+class Timer(private val zoo: Zoo) : IUtil {
     private var active = false
     private var lives = true
 

@@ -9,6 +9,6 @@ import organization.Entity
 abstract class Person(
     var firstname: String, // Имя
     initSex: String
-): Entity() {
+) : Entity() {
     val sex = if (initSex == "MALE") "MALE" else "FEMALE" // Пол
 }

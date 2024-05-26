@@ -6,7 +6,7 @@ import interfaces.ITick
  * Любой объект (животное / человек)
  */
 
-abstract class Entity: ITick {
+abstract class Entity : ITick {
     val id = System.identityHashCode(this::class) // ID
     val name = this::class.simpleName // Название класса
     val prefix = "$name #$id" // Префикс

@@ -13,7 +13,7 @@ import interfaces.IOpenEnclosure
 class Visitor(
     firstname: String,
     sex: String,
-): Person(firstname, sex) {
+) : Person(firstname, sex) {
     private var indexOfEnclosure = -1 // Индекс текущего вольера
 
     private var money = 0 // Баланс пользователя
