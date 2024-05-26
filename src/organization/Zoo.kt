@@ -28,7 +28,7 @@ class Zoo : IZooStorage, IZooCommands, ITick {
     }
 
     // Получить элемент по ID
-    private inline fun <reified T> getEntityById(id: Int): T? {
+    private inline fun <reified T> getEntityById(id: String): T? {
         return entities.find {
             id == it.id && T::class.isInstance(it)
         } as T?
@@ -125,7 +125,7 @@ class Zoo : IZooStorage, IZooCommands, ITick {
             "parrot", "wolf", "lion" -> {
                 if (args.size < 3) return notEnoughArguments()
 
-                val enclosure = getEntityById<IControlEnclosure>(args[2].toInt())
+                val enclosure = getEntityById<IControlEnclosure>(args[2])
                     ?: return println("Couldn't find an enclosure with this ID")
 
                 val name = type.capitalize()
@@ -163,7 +163,7 @@ class Zoo : IZooStorage, IZooCommands, ITick {
     override fun removeCommand(args: List<String>) {
         if (args.size < 2) return notEnoughArguments()
 
-        val entity = getEntityById<Entity>(args[1].toInt())
+        val entity = getEntityById<Entity>(args[1])
             ?: return println("Couldn't find an entity with this ID")
 
         entity.destroy()
@@ -188,7 +188,7 @@ class Zoo : IZooStorage, IZooCommands, ITick {
     override fun editCommand(args: List<String>) {
         if (args.size < 3) return notEnoughArguments()
 
-        val entity = getEntityById<Entity>(args[1].toInt())
+        val entity = getEntityById<Entity>(args[1])
             ?: return println("Couldn't find an entity with this ID")
 
         when {
@@ -217,7 +217,7 @@ class Zoo : IZooStorage, IZooCommands, ITick {
         when (args[1]) {
             "zoo" -> checkStatus()
             else -> {
-                val entity = getEntityById<Entity>(args[1].toInt())
+                val entity = getEntityById<Entity>(args[1])
                     ?: return println("Couldn't find an entity with this ID")
 
                 entity.checkStatus(1)
@@ -228,7 +228,7 @@ class Zoo : IZooStorage, IZooCommands, ITick {
     override fun voteCommand(args: List<String>) {
         if (args.size < 2) return notEnoughArguments()
 
-        val animal = getEntityById<Animal>(args[1].toInt())
+        val animal = getEntityById<Animal>(args[1])
             ?: return println("Couldn't find an animal with this ID")
 
         animal.vote()

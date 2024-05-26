@@ -1,5 +1,6 @@
 package organization
 
+import java.util.UUID
 import interfaces.ITick
 
 /*
@@ -7,9 +8,9 @@ import interfaces.ITick
  */
 
 abstract class Entity : ITick {
-    val id = System.identityHashCode(this::class) // ID
+    val id = UUID.randomUUID().toString() // ID
     val name = this::class.simpleName // Название класса
-    val prefix = "$name #$id" // Префикс
+    val prefix = "$name $id" // Префикс
 
     // Разрушить объект
     abstract fun destroy()
