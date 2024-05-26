@@ -12,8 +12,10 @@ import organization.Enclosure
 
 interface IZooStorage {
     val entities: MutableList<Entity>
-    val enclosures: MutableList<Enclosure>
-    val employees: MutableList<Employee>
-    val visitors: MutableList<Visitor>
+
+    val enclosures: List<Enclosure>
+    val employees: List<Employee>
+    val visitors: List<Visitor>
+
     val shop: Shop
 }

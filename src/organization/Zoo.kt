@@ -5,17 +5,21 @@ import animals.*
 import interfaces.*
 import kotlinx.coroutines.*
 import kotlin.random.Random
-import kotlin.reflect.KClass
 
 /*
  * Зоопарк
  */
 
-class Zoo: IZooStorage, IZooCommands, ITick {
+class Zoo : IZooStorage, IZooCommands, ITick {
     override val entities = mutableListOf<Entity>()
-    override val enclosures = mutableListOf<Enclosure>()
-    override val employees = mutableListOf<Employee>()
-    override val visitors = mutableListOf<Visitor>()
+
+    override val enclosures: List<Enclosure>
+        get() = getListOfEntities()
+    override val employees: List<Employee>
+        get() = getListOfEntities()
+    override val visitors: List<Visitor>
+        get() = getListOfEntities()
+
     override val shop = Shop()
 
     // В команде недостаточно аргументов
@@ -24,38 +28,45 @@ class Zoo: IZooStorage, IZooCommands, ITick {
     }
 
     // Получить элемент по ID
-    private fun getEntityById(id: Int, parent: KClass<*> = Entity::class): Entity? {
-        for (entity in entities) {
-            if (id == entity.id && parent.isInstance(entity)) {
-                return entity
-            }
+    private inline fun <reified T> getEntityById(id: Int): T? {
+        return entities.find {
+            id == it.id && T::class.isInstance(it)
+        } as T?
+    }
+
+    // Получить количество элементов определённого типа
+    private inline fun <reified T> getCountOfEntities(): Int {
+        var count = 0
+
+        entities.forEach {
+            if (T::class.isInstance(it)) count++
         }
 
-        return null
+        return count
+    }
+
+    // Получить список из элементов определённого типа
+    private inline fun <reified T> getListOfEntities(): List<T> {
+        return entities.filterIsInstance<T>()
     }
 
     // Получить доступный для заселения вольер
     private fun getAvailableEnclosure(name: String): Enclosure? {
-        for (enclosure in enclosures) {
-            if (enclosure.addingIsAvailable(name)) {
-                return enclosure
-            }
-        }
-
-        return null
+        return entities.find {
+            Enclosure::class.isInstance(it) && (it as Enclosure).addingIsAvailable(name)
+        } as Enclosure?
     }
 
     // Создать 16 случайных животных и распределить по вольерам
     private fun createAnimals() {
         val names = arrayOf("Parrot", "Wolf", "Lion")
 
-        for (i in 0 .. 16) {
+        for (i in 0..<16) {
             val name = names[Random.nextInt(names.size)]
             var enclosure = getAvailableEnclosure(name)
 
             if (enclosure == null) {
                 enclosure = Enclosure()
-                enclosures.add(enclosure)
                 entities.add(enclosure)
             }
 
@@ -73,9 +84,15 @@ class Zoo: IZooStorage, IZooCommands, ITick {
 
     // Проверить статус зоопарка
     private fun checkStatus() {
-        print("[Zoo] Enclosures: ${enclosures.size}")
-        print(" | Employees: ${employees.size}")
-        println(" | Visitors: ${visitors.size}")
+        val enclosuresCount = getCountOfEntities<Enclosure>()
+        val animalsCount = getCountOfEntities<Animal>()
+        val employeesCount = getCountOfEntities<Employee>()
+        val visitorsCount = getCountOfEntities<Visitor>()
+
+        print("[Zoo] Enclosures: $enclosuresCount")
+        print(" | Animals: $animalsCount")
+        print(" | Employees: $employeesCount")
+        println(" | Visitors: $visitorsCount")
     }
 
     override fun helpCommand() {
@@ -102,13 +119,13 @@ class Zoo: IZooStorage, IZooCommands, ITick {
         when (val type = args[1]) {
             "enclosure" -> {
                 val enclosure = Enclosure()
-                enclosures.add(enclosure)
                 entities.add(enclosure)
             }
+
             "parrot", "wolf", "lion" -> {
                 if (args.size < 3) return notEnoughArguments()
 
-                val enclosure = getEntityById(args[2].toInt(), Enclosure::class) as IControlEnclosure?
+                val enclosure = getEntityById<IControlEnclosure>(args[2].toInt())
                     ?: return println("Couldn't find an enclosure with this ID")
 
                 val name = type.capitalize()
@@ -126,18 +143,18 @@ class Zoo: IZooStorage, IZooCommands, ITick {
                 enclosure.addAnimal(animal)
                 entities.add(animal)
             }
+
             "employee" -> {
                 if (args.size < 5) return notEnoughArguments()
 
                 val employee = Employee(args[2], args[3], args[4])
-                employees.add(employee)
                 entities.add(employee)
             }
+
             "visitor" -> {
                 if (args.size < 4) return notEnoughArguments()
 
                 val visitor = Visitor(args[2], args[3])
-                visitors.add(visitor)
                 entities.add(visitor)
             }
         }
@@ -146,7 +163,7 @@ class Zoo: IZooStorage, IZooCommands, ITick {
     override fun removeCommand(args: List<String>) {
         if (args.size < 2) return notEnoughArguments()
 
-        val entity = getEntityById(args[1].toInt())
+        val entity = getEntityById<Entity>(args[1].toInt())
             ?: return println("Couldn't find an entity with this ID")
 
         entity.destroy()
@@ -158,18 +175,12 @@ class Zoo: IZooStorage, IZooCommands, ITick {
                     animal.destroy()
                     entities.remove(animal)
                 }
-                enclosures.remove(entity)
             }
+
             Animal::class.isInstance(entity) -> {
-                for (enclosure: IControlEnclosure in enclosures) {
-                    if (enclosure.removeAnimal(entity as Animal)) break
+                enclosures.find {
+                    (it as IControlEnclosure).removeAnimal(entity as Animal)
                 }
-            }
-            Employee::class.isInstance(entity) -> {
-                employees.remove(entity)
-            }
-            Visitor::class.isInstance(entity) -> {
-                visitors.remove(entity)
             }
         }
     }
@@ -177,20 +188,23 @@ class Zoo: IZooStorage, IZooCommands, ITick {
     override fun editCommand(args: List<String>) {
         if (args.size < 3) return notEnoughArguments()
 
-        val entity = getEntityById(args[1].toInt())
+        val entity = getEntityById<Entity>(args[1].toInt())
             ?: return println("Couldn't find an entity with this ID")
 
         when {
             Animal::class.isInstance(entity) -> {
                 (entity as Animal).edit(args[2].toInt())
             }
+
             Employee::class.isInstance(entity) -> {
                 if (args.size < 4) return notEnoughArguments()
                 (entity as Employee).edit(args[2], args[3])
             }
+
             Visitor::class.isInstance(entity) -> {
                 (entity as Visitor).edit(args[2])
             }
+
             else -> return println("This entity cannot be edited")
         }
 
@@ -203,7 +217,7 @@ class Zoo: IZooStorage, IZooCommands, ITick {
         when (args[1]) {
             "zoo" -> checkStatus()
             else -> {
-                val entity = getEntityById(args[1].toInt())
+                val entity = getEntityById<Entity>(args[1].toInt())
                     ?: return println("Couldn't find an entity with this ID")
 
                 entity.checkStatus(1)
@@ -214,7 +228,7 @@ class Zoo: IZooStorage, IZooCommands, ITick {
     override fun voteCommand(args: List<String>) {
         if (args.size < 2) return notEnoughArguments()
 
-        val animal = getEntityById(args[1].toInt(), Animal::class) as Animal?
+        val animal = getEntityById<Animal>(args[1].toInt())
             ?: return println("Couldn't find an animal with this ID")
 
         animal.vote()
@@ -222,7 +236,6 @@ class Zoo: IZooStorage, IZooCommands, ITick {
 
     override fun endCommand() {
         println("Finishing program...")
-
         command.destroy()
         timer.destroy()
     }
