@@ -1,17 +1,20 @@
 package animals
 
 import organization.Entity
+import kotlin.reflect.KClass
 import interfaces.IZooStorage
 
 /*
  * Основа любого животного
  */
 
-open class Animal : Entity() {
+abstract class Animal : Entity() {
     private var satiety = 0 // Сытость
-    open var threshold = 0 // Порог сытости
-    open var voice = "" // Голос
-    open var limit = 0 // Лимит животных в одном вольере
+
+    abstract val threshold: Int // Порог сытости
+    abstract val voice: String // Голос
+    abstract val limit: Int // Лимит животных в одном вольере
+    abstract val ration: List<KClass<*>> // Рацион питания
 
     val status: String // Статус животного
         get() = if (satiety < threshold) "HUNGRY" else "WELL-FED"

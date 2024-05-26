@@ -1,11 +1,18 @@
 package animals
 
+import food.Red
+import food.Green
+
 /*
  * Лев
  */
 
 class Lion : Animal() {
-    override var threshold = 16
-    override var voice = "R-r-r"
-    override var limit = 4
+    override val threshold = 16
+    override val voice = "R-r-r"
+    override val limit = 4
+    override val ration = listOf(
+        Red::class,
+        Green::class
+    )
 }

@@ -1,6 +1,8 @@
 package interfaces
 
+import food.Food
 import animals.Animal
+import kotlin.reflect.KClass
 
 /*
  * Управление вольером
@@ -13,13 +15,13 @@ interface IControlEnclosure {
     val animals: List<Animal>
 
     // Запас еды в вольере
-    var food: Int
+    val fodder: MutableList<Food> // Хранилище еды
 
     // Можно ли положить еду
-    fun puttingFoodIsAvailable(amount: Int): Boolean
+    fun puttingFoodIsAvailable(amount: Int, type: KClass<*>): Boolean
 
     // Положить еду
-    fun putFood(amount: Int)
+    fun putFood(amount: Int, type: KClass<*>)
 
     // Можно ли добавить новое животное
     fun addingIsAvailable(name: String): Boolean

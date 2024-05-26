@@ -5,5 +5,5 @@ package food
  */
 
 class Red : Food() {
-    override val maxWeight = 128
+    override val limit = 128
 }

@@ -1,6 +1,8 @@
 package people
 
+import food.*
 import kotlin.random.Random
+import kotlin.reflect.KClass
 import interfaces.IZooStorage
 import interfaces.IControlEnclosure
 
@@ -15,28 +17,27 @@ class Employee(
 ) : Person(firstname, sex) {
     // Пройтись по вольерам
     private fun walkThroughEnclosures(enclosures: List<IControlEnclosure>) {
-        // Вольер с минимальным количеством еды
-        var badEnclosure: IControlEnclosure? = null
-
-        // Количество еды
-        val amount = Random.nextInt(16) + 4
-
-        for (enclosure in enclosures) {
-            if (!enclosure.puttingFoodIsAvailable(amount)) continue
-
-            if (badEnclosure == null || enclosure.food < badEnclosure.food) {
-                badEnclosure = enclosure
-            }
+        // Случайный тип еды
+        val type = when (Random.nextInt(3)) {
+            0 -> Red::class
+            1 -> Green::class
+            else -> Blue::class
         }
 
-        if (badEnclosure != null) {
-            putFoodInEnclosure(badEnclosure, amount)
+        // Случайный вольер
+        val enclosure = enclosures[Random.nextInt(enclosures.size)]
+
+        // Случайное количество еды
+        val amount = Random.nextInt(16) + 4
+
+        if (enclosure.puttingFoodIsAvailable(amount, type)) {
+            putFoodInEnclosure(enclosure, amount, type)
         }
     }
 
     // Положить еду в вольер
-    private fun putFoodInEnclosure(enclosure: IControlEnclosure, amount: Int) {
-        enclosure.putFood(amount)
+    private fun putFoodInEnclosure(enclosure: IControlEnclosure, amount: Int, type: KClass<*>) {
+        enclosure.putFood(amount, type)
 
         println("[$prefix] I put $amount food in the ${enclosure.prefix} - $firstname, $sex ($job)")
     }

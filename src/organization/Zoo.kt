@@ -74,11 +74,12 @@ class Zoo : IZooStorage, IZooCommands, ITick {
                 "Parrot" -> Parrot()
                 "Wolf" -> Wolf()
                 "Lion" -> Lion()
-                else -> Animal()
+                else -> null
             }
-
-            enclosure.addAnimal(animal)
-            entities.add(animal)
+            if (animal != null) {
+                enclosure.addAnimal(animal)
+                entities.add(animal)
+            }
         }
     }
 
@@ -138,10 +139,12 @@ class Zoo : IZooStorage, IZooCommands, ITick {
                     "parrot" -> Parrot()
                     "wolf" -> Wolf()
                     "lion" -> Lion()
-                    else -> Animal()
+                    else -> null
                 }
-                enclosure.addAnimal(animal)
-                entities.add(animal)
+                if (animal != null) {
+                    enclosure.addAnimal(animal)
+                    entities.add(animal)
+                }
             }
 
             "employee" -> {

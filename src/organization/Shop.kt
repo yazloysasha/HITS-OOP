@@ -1,23 +1,37 @@
 package organization
 
 import people.Visitor
+import kotlin.reflect.KClass
 
 /*
  * Магазин
  */
 
 class Shop {
-    val foodPrice = 100 // Цена одной единицы еды
+    // Получить цену еды
+    private fun getPrice(type: KClass<*>): Int {
+        return when (type.simpleName) {
+            "Red" -> 500
+            "Green" -> 200
+            "Blue" -> 100
+            else -> 10 // тенге
+        }
+    }
 
     // Купить еду
-    fun buyFood(visitor: Visitor, money: Int): Int {
-        val food = money / foodPrice
-        val spent = food * foodPrice
+    fun buy(visitor: Visitor, money: Int, type: KClass<*>): Int {
+        val price = getPrice(type)
 
-        visitor.reduceMoney(spent)
+        val amount = money / price
 
-        println("[Shop] ${visitor.prefix} bought $food meals for \$$spent")
+        if (amount != 0) {
+            val spent = amount * price
 
-        return food
+            visitor.reduceMoney(spent)
+
+            println("[Shop] ${visitor.prefix} bought $amount meals of ${type.simpleName} for \$$spent")
+        }
+
+        return amount
     }
 }

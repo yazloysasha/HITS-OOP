@@ -1,8 +1,10 @@
 package people
 
+import food.*
 import animals.Animal
 import organization.Shop
 import kotlin.random.Random
+import kotlin.reflect.KClass
 import interfaces.IZooStorage
 import interfaces.IOpenEnclosure
 
@@ -17,7 +19,7 @@ class Visitor(
     private var indexOfEnclosure = -1 // Индекс текущего вольера
 
     private var money = 0 // Баланс пользователя
-    private var food = 0 // Количество еды у пользователя
+    private val backpack = mutableListOf<Food>() // Рюкзак с едой
 
     // Пройти по зоопарку
     private fun walkThroughZoo(shop: Shop, enclosures: List<IOpenEnclosure>) {
@@ -63,10 +65,19 @@ class Visitor(
                 }
 
                 // Пользователь в зоопарке, можно купить еду
-                else -> if (money >= shop.foodPrice) {
-                    val moneyAmount = Random.nextInt(money.coerceIn(shop.foodPrice, 900))
-                    val foodAmount = shop.buyFood(this, moneyAmount)
-                    putFood(foodAmount)
+                else -> if (money > 0) {
+                    // Случайный тип еды
+                    val type = when (Random.nextInt(3)) {
+                        0 -> Red::class
+                        1 -> Green::class
+                        else -> Blue::class
+                    }
+
+                    val given = Random.nextInt(money.coerceIn(1, 2000))
+                    val amount = shop.buy(this, given, type)
+                    if (amount != 0) {
+                        putFood(amount, type)
+                    }
                 }
             }
         }
@@ -80,19 +91,39 @@ class Visitor(
     }
 
     // Положить еду в рюкзак
-    private fun putFood(amount: Int) {
-        food += amount
+    private fun putFood(amount: Int, type: KClass<*>) {
+        var pocket = backpack.find { type.isInstance(it) }
+
+        if (pocket == null) {
+            pocket = when (type.simpleName) {
+                "Red" -> Red()
+                "Green" -> Green()
+                "Blue" -> Blue()
+                else -> null
+            }
+            if (pocket != null) {
+                backpack.add(pocket)
+            }
+        }
+
+        pocket?.put(amount)
     }
 
     // Покормить животного
     private fun feedAnimal(animal: Animal) {
-        if (animal.status != "HUNGRY" || food == 0) return
+        if (animal.status != "HUNGRY") return
 
         val minFood = 1
-        val maxFood = 4
+        val maxFood = 8
 
-        val amount = food.coerceIn(minFood, maxFood)
-        food -= amount
+        val pocket = backpack.find { firstT ->
+            animal.ration.find { secondT ->
+                firstT.weight > 0 && secondT.isInstance(firstT)
+            } != null
+        } ?: return
+
+        val amount = pocket.weight.coerceIn(minFood, maxFood)
+        pocket.take(amount)
 
         println("[$prefix] I fed ${animal.prefix} - $firstname, $sex")
 
@@ -116,7 +147,11 @@ class Visitor(
 
     // Проверить статус посетителя
     override fun checkStatus(rights: Int) {
-        println("[$prefix] Name: $firstname | Sex: $sex | Balance: \$$money | Food: $food")
+        print("[$prefix] Name: $firstname | Sex: $sex | Balance: \$$money")
+        for (pocket in backpack) {
+            print(" | [F] ${pocket.name}: ${pocket.weight}")
+        }
+        println()
     }
 
     override fun tick(zoo: IZooStorage) {

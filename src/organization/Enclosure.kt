@@ -1,7 +1,9 @@
 package organization
 
+import food.*
 import animals.Animal
 import kotlin.random.Random
+import kotlin.reflect.KClass
 import interfaces.IZooStorage
 import interfaces.IOpenEnclosure
 import interfaces.IControlEnclosure
@@ -17,8 +19,7 @@ class Enclosure : IOpenEnclosure, IControlEnclosure, Entity() {
     override val animals: List<Animal>
         get() = animalsInOpenPart + animalsInClosedPart
 
-    private val limit = 512 // Максимальный запас еды
-    override var food = 0 // Запас еды в вольере
+    override val fodder = mutableListOf<Food>() // Хранилище еды
 
     // Перемещения животных по вольеру
     private fun movementOfAnimals() {
@@ -59,10 +60,19 @@ class Enclosure : IOpenEnclosure, IControlEnclosure, Entity() {
 
         for (animal in animals) {
             if (animal.status != "HUNGRY") continue
-            if (food < minFood) return
 
-            val amount = food.coerceIn(minFood, maxFood)
-            food -= amount
+            // Животное ищет свою еду
+            val food = fodder.find { firstT ->
+                animal.ration.find { secondT ->
+                    secondT.isInstance(firstT)
+                } != null
+            } ?: continue
+
+            if (food.weight < minFood) return
+
+            val amount = food.weight.coerceIn(minFood, maxFood)
+
+            food.take(amount)
             animal.eat(amount)
         }
     }
@@ -77,12 +87,30 @@ class Enclosure : IOpenEnclosure, IControlEnclosure, Entity() {
         return animalsInOpenPart[Random.nextInt(animalsInOpenPart.size)]
     }
 
-    override fun puttingFoodIsAvailable(amount: Int): Boolean {
-        return food + amount < limit
+    override fun puttingFoodIsAvailable(amount: Int, type: KClass<*>): Boolean {
+        val food = fodder.find { type::class.isInstance(it) }
+            ?: return true
+
+        return food.weight < food.limit
     }
 
-    override fun putFood(amount: Int) {
-        food += amount
+    override fun putFood(amount: Int, type: KClass<*>) {
+        var food = fodder.find { type.isInstance(it) }
+
+        if (food == null) {
+            food = when (type.simpleName) {
+                "Red" -> Red()
+                "Green" -> Green()
+                "Blue" -> Blue()
+                else -> null
+            }
+            println(food == null)
+            if (food != null) {
+                fodder.add(food)
+            }
+        }
+
+        food?.put(amount)
     }
 
     override fun addingIsAvailable(name: String): Boolean {
@@ -107,7 +135,11 @@ class Enclosure : IOpenEnclosure, IControlEnclosure, Entity() {
 
     // Проверить статус вольера
     override fun checkStatus(rights: Int) {
-        println("[$prefix] Animals: ${animals.size} | Food: $food")
+        print("[$prefix] Animals: ${animals.size}")
+        for (food in fodder) {
+            print(" | ${food.name} Food: ${food.weight}")
+        }
+        println()
 
         animals.forEach { animal -> animal.checkStatus(1) }
     }
