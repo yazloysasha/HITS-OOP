@@ -104,7 +104,6 @@ class Enclosure : IOpenEnclosure, IControlEnclosure, Entity() {
                 "Blue" -> Blue()
                 else -> null
             }
-            println(food == null)
             if (food != null) {
                 fodder.add(food)
             }
